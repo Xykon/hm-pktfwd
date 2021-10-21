@@ -4,19 +4,7 @@ import sentry_sdk
 import subprocess
 import os
 import json
-from variant_definitions import variant_definitions
-
 from time import sleep
-
-variant = os.getenv('VARIANT')
-variant_variables = variant_definitions[variant]
-# Reset pin is on this GPIO
-reset_pin = variant_variables['RESET']
-# And SPI on this bus
-spi_bus = variant_variables['SPIBUS']
-print("Hardware Variant %s Detected" % variant)
-print("SPI: %s" % reset_pin)
-print("RESET: %s" % str(spi_bus))
 
 print("Starting Packet Forwarder Container")
 
@@ -27,7 +15,6 @@ if(sentry_key):
     balena_app = os.getenv('BALENA_APP_NAME')
     sentry_sdk.init(sentry_key, environment=balena_app)
     sentry_sdk.set_user({"id": balena_id})
-
 
 with open("/var/pktfwd/diagnostics", 'w') as diagOut:
     diagOut.write("true")
@@ -98,54 +85,22 @@ def writeRegionConfSx1301(regionId):
         json.dump(newGlobal, jsonOut)
 
 
-def writeRegionConfSx1302(regionId, spi_bus):
-    # Writes the configuration files
-    regionconfFile = "/opt/iotloragateway/packet_forwarder/sx1302/lora_templates_sx1302/"+regionList[regionId]
-    with open(regionconfFile) as regionconfJFile:
-        newGlobal = json.load(regionconfJFile)
-
-    # Inject SPI Bus
-    newGlobal['SX130x_conf']['spidev_path'] = "/dev/%s" % spi_bus
-
-    globalPath = "/opt/iotloragateway/packet_forwarder/sx1302/packet_forwarder/global_conf.json"
-
-    with open(globalPath, 'w') as jsonOut:
-        json.dump(newGlobal, jsonOut)
-
-
 # Log the amount of times it has failed starting
 failTimes = 0
 
-# Write the correct reset pin to sx1302 reset
-
-gpioResetSED = "sed -i 's/SX1302_RESET_PIN=../SX1302_RESET_PIN=%s/g' reset_lgw.sh" % str(reset_pin)
-os.system(gpioResetSED)
-
 while True:
-
-    euiPATH = '/opt/iotloragateway/packet_forwarder/sx1302/util_chip_id/chip_id -d /dev/%s' % spi_bus
-    euiTest = os.popen(euiPATH).read()
 
     print("Starting")
 
-    subprocess.call(['/opt/iotloragateway/packet_forwarder/reset-v2.sh', str(reset_pin)])
+    subprocess.call(['/opt/iotloragateway/packet_forwarder/reset-v2.sh'])
     sleep(2)
 
-    if "concentrator EUI:" in euiTest:
-        print("SX1302")
-        print("Frequency " + regionID)
-        writeRegionConfSx1302(regionID, spi_bus)
-        os.system("/opt/iotloragateway/packet_forwarder/sx1302/packet_forwarder/lora_pkt_fwd")
-        print("Software crashed, restarting")
-        failTimes += 1
-
-    else:
-        print("SX1301")
-        print("Frequency " + regionID)
-        writeRegionConfSx1301(regionID)
-        os.system("/opt/iotloragateway/packet_forwarder/sx1301/lora_pkt_fwd_%s" % spi_bus)
-        print("Software crashed, restarting")
-        failTimes += 1
+    print("SX1308")
+    print("Frequency " + regionID)
+    writeRegionConfSx1301(regionID)
+    os.system("/opt/iotloragateway/packet_forwarder/sx1301/lora_pkt_fwd")
+    print("Software crashed, restarting")
+    failTimes += 1
 
     if(failTimes == 5):
         with open("/var/pktfwd/diagnostics", 'w') as diagOut:

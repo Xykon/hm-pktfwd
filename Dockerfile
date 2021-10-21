@@ -16,7 +16,6 @@ RUN apt-get update && apt-get -y install \
   --no-install-recommends
 
 COPY buildfiles buildfiles
-COPY sx1302fixes sx1302fixes
 
 ARG moo=2
 
@@ -31,18 +30,7 @@ RUN git clone https://github.com/NebraLtd/packet_forwarder.git
 
 RUN chmod +x ./buildfiles/compileSX1301.sh
 RUN ./buildfiles/compileSX1301.sh spidev0.0
-RUN ./buildfiles/compileSX1301.sh spidev0.1
-RUN ./buildfiles/compileSX1301.sh spidev1.0
-RUN ./buildfiles/compileSX1301.sh spidev1.1
-RUN ./buildfiles/compileSX1301.sh spidev1.2
-RUN ./buildfiles/compileSX1301.sh spidev2.0
-RUN ./buildfiles/compileSX1301.sh spidev2.1
-RUN ./buildfiles/compileSX1301.sh spidev32766.0
 RUN ls /opt/iotloragateway/packetforwarder/
-
-
-RUN chmod +x ./buildfiles/compileSX1302.sh
-RUN ./buildfiles/compileSX1302.sh
 
 FROM arm32v5/debian:buster-slim
 
@@ -69,20 +57,6 @@ COPY lora_templates_sx1301 lora_templates_sx1301/
 RUN cp lora_templates_sx1301/local_conf.json local_conf.json
 RUN cp lora_templates_sx1301/EU-global_conf.json global_conf.json
 
-WORKDIR /opt/iotloragateway/packet_forwarder/sx1302
-
-COPY --from=buildstep /opt/iotloragateway/dev/sx1302_hal-1.0.5 .
-WORKDIR /opt/iotloragateway/packet_forwarder/sx1302/util_chip_id
-COPY files/reset_lgw.sh .
-RUN chmod +x reset_lgw.sh
-
-WORKDIR /opt/iotloragateway/packet_forwarder/sx1302/
-COPY lora_templates_sx1302 lora_templates_sx1302/
-
-RUN cp lora_templates_sx1302/local_conf.json packet_forwarder/local_conf.json
-RUN cp lora_templates_sx1302/EU-global_conf.json packet_forwarder/global_conf.json
-
-
 WORKDIR /opt/iotloragateway/packet_forwarder
 
 COPY files/run_pkt.sh .
@@ -93,7 +67,5 @@ RUN chmod +x run_pkt.sh
 RUN chmod +x configurePktFwd.py
 COPY files/reset_lgw.sh .
 RUN chmod +x reset_lgw.sh
-RUN wget -q "https://raw.githubusercontent.com/NebraLtd/helium-hardware-definitions/master/variant_definitions.py"
-
 
 ENTRYPOINT ["sh", "/opt/iotloragateway/packet_forwarder/run_pkt.sh"]
