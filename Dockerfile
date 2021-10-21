@@ -1,63 +1,81 @@
-#Packet Forwarder Docker File
-#(C) Pi Supply 2019
-#Licensed under the GNU GPL V3 License.
-FROM arm32v5/debian:buster-slim AS buildstep
+# Packet Forwarder Docker File
+# (C) Nebra Ltd 2019
+# Licensed under the MIT License.
+
+####################################################################################################
+################################## Stage: builder ##################################################
+
+FROM balenalib/raspberry-pi-debian:buster-build as builder
+
+# Move to correct working directory
 WORKDIR /opt/iotloragateway/dev
 
-RUN apt-get update && apt-get -y install \
-  automake=1:1.16.1-4 \
-  libtool=2.4.6-9 \
-  autoconf=2.69-11 \
-  git=1:2.20.1-2+deb10u3 \
-  ca-certificates=20200601~deb10u2 \
-  pkg-config=0.29-6 \
-  build-essential=12.6 \
-  wget=1.20.1-1.1 \
-  --no-install-recommends
+# Copy python dependencies for `pip install` later
+COPY requirements.txt requirements.txt
 
+# This will be the path that venv uses for installation below
+ENV PATH="/opt/iotloragateway/dev/venv/bin:$PATH"
+
+# Install build tools
+# hadolint ignore=DL3008
+RUN apt-get update && \
+    apt-get -y install --no-install-recommends \
+        automake \
+        libtool \
+        autoconf \
+        git \
+        ca-certificates \
+        pkg-config \
+        build-essential \
+        python3 \
+        python3-pip \
+        python3-venv && \
+    # Because the PATH is already updated above, this command creates a new venv AND activates it
+    python3 -m venv /opt/iotloragateway/dev/venv && \
+    # Given venv is active, this `pip` refers to the python3 variant
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the buildfiles and sx1302 concentrator fixes
 COPY buildfiles buildfiles
+COPY sx1302fixes sx1302fixes
 
-ARG moo=2
-
-
-RUN mkdir -p /opt/iotloragateway
-RUN mkdir -p /opt/iotloragateway/dev
-RUN mkdir -p /opt/iotloragateway/packetforwarder
-WORKDIR /opt/iotloragateway/dev
-
+# Clone the lora gateway and packet forwarder repos
 RUN git clone https://github.com/NebraLtd/lora_gateway.git
 RUN git clone https://github.com/NebraLtd/packet_forwarder.git
 
-RUN chmod +x ./buildfiles/compileSX1301.sh
+# Create folder needed by packetforwarder compiler
+RUN mkdir -p /opt/iotloragateway/packetforwarder
+
+# Compile for sx1301 concentrator on all the necessary SPI buses
 RUN ./buildfiles/compileSX1301.sh spidev0.0
-RUN ls /opt/iotloragateway/packetforwarder/
 
-FROM arm32v5/debian:buster-slim
+FROM balenalib/raspberry-pi-debian:buster-run as runner
 
+# Start in sx1301 directory
 WORKDIR /opt/iotloragateway/packet_forwarder/sx1301
 
+# Install python3-venv and python3-rpi.gpio
+# hadolint ignore=DL3008
 RUN apt-get update && \
-apt-get -y install \
-wget=1.20.1-1.1 \
-python3=3.7.3-1 \
-python3-rpi.gpio=0.6.5-1 \
-python3-pip=18.1-5 \
---no-install-recommends && \
-pip3 install --no-cache-dir sentry-sdk==1.1.0 &&\
-apt-get purge python3-pip -y &&\
-apt-get autoremove -y &&\
-apt-get clean && \
-rm -rf /var/lib/apt/lists/*
+    apt-get -y install \
+        python3-venv \
+        python3-rpi.gpio && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
+# Copy sx1301 packetforwader from builder
+COPY --from=builder /opt/iotloragateway/packetforwarder .
 
-
-COPY --from=buildstep /opt/iotloragateway/packetforwarder .
+# Copy sx1301 regional config templates
 COPY lora_templates_sx1301 lora_templates_sx1301/
 
-RUN cp lora_templates_sx1301/local_conf.json local_conf.json
-RUN cp lora_templates_sx1301/EU-global_conf.json global_conf.json
+# Use EU config as initial default
+COPY lora_templates_sx1301/local_conf.json local_conf.json
+COPY lora_templates_sx1301/EU-global_conf.json global_conf.json
 
 WORKDIR /opt/iotloragateway/packet_forwarder
+COPY files/* .
 
 COPY files/run_pkt.sh .
 COPY files/configurePktFwd.py .
@@ -68,4 +86,5 @@ RUN chmod +x configurePktFwd.py
 COPY files/reset_lgw.sh .
 RUN chmod +x reset_lgw.sh
 
+# Run run_pkt script
 ENTRYPOINT ["sh", "/opt/iotloragateway/packet_forwarder/run_pkt.sh"]

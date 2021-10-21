@@ -1,7 +1,7 @@
 # Configure Packet Forwarder Program
 # Configures the packet forwarder based on the YAML File and Env Variables
 import sentry_sdk
-import subprocess
+import subprocess  # nosec (B404)
 import os
 import json
 from time import sleep
@@ -25,7 +25,7 @@ regionID = None
 while(regionID is None):
     # While no region specified
 
-    # Otherwise get region from miner
+    # Check to see if there is a region override
     try:
         regionOverride = str(os.environ['REGION_OVERRIDE'])
         if(regionOverride):
@@ -34,7 +34,7 @@ while(regionID is None):
     except KeyError:
         print("No Region Override Specified")
 
-    # Check to see if there is a region override
+    # Otherwise get region from miner
     try:
         with open("/var/pktfwd/region", 'r') as regionOut:
             regionFile = regionOut.read()
@@ -65,6 +65,7 @@ regionList = {
     "AS923_4": "AS923-4-global_conf.json",
     "AU915": "AU-global_conf.json",
     "CN470": "CN-global_conf.json",
+    "EU433": "EU433-global_conf.json",
     "EU868": "EU-global_conf.json",
     "IN865": "IN-global_conf.json",
     "KR920": "KR-global_conf.json",
