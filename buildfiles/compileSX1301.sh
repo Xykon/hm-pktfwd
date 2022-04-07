@@ -1,4 +1,6 @@
 #! /bin/bash
+set -x
+
 echo "Compiling for SX1308"
 
 cd /opt/iotloragateway/dev/lora_gateway/libloragw || exit

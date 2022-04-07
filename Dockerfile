@@ -35,10 +35,6 @@ RUN apt-get update && \
     # Given venv is active, this `pip` refers to the python3 variant
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the buildfiles and sx1302 concentrator fixes
-COPY buildfiles buildfiles
-COPY sx1302fixes sx1302fixes
-
 # Clone the lora gateway and packet forwarder repos
 RUN git clone https://github.com/NebraLtd/lora_gateway.git
 RUN git clone https://github.com/NebraLtd/packet_forwarder.git
@@ -46,13 +42,15 @@ RUN git clone https://github.com/NebraLtd/packet_forwarder.git
 # Create folder needed by packetforwarder compiler
 RUN mkdir -p /opt/iotloragateway/packetforwarder
 
+COPY ./buildfiles/compileSX1301.sh compileSX1301.sh
+
 # Compile for sx1301 concentrator on all the necessary SPI buses
-RUN ./buildfiles/compileSX1301.sh spidev0.0
+RUN ./compileSX1301.sh
 
 FROM balenalib/raspberry-pi-debian:buster-run as runner
 
 # Start in sx1301 directory
-WORKDIR /opt/iotloragateway/packet_forwarder/sx1301
+WORKDIR /opt/packet_forwarder
 
 # Install python3-venv and python3-rpi.gpio
 # hadolint ignore=DL3008
@@ -68,11 +66,11 @@ RUN apt-get update && \
 COPY --from=builder /opt/iotloragateway/packetforwarder .
 
 # Copy sx1301 regional config templates
-COPY lora_templates_sx1301 lora_templates_sx1301/
+COPY lora_templates lora_templates/
 
 # Use EU config as initial default
-COPY lora_templates_sx1301/local_conf.json local_conf.json
-COPY lora_templates_sx1301/EU-global_conf.json global_conf.json
+COPY lora_templates/local_conf.json local_conf.json
+COPY lora_templates/US-global_conf.json global_conf.json
 
 WORKDIR /opt/iotloragateway/packet_forwarder
 COPY files/* .

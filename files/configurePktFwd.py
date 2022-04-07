@@ -64,8 +64,6 @@ regionList = {
     "AS923_3": "AS923-3-global_conf.json",
     "AS923_4": "AS923-4-global_conf.json",
     "AU915": "AU-global_conf.json",
-    "CN470": "CN-global_conf.json",
-    "EU433": "EU433-global_conf.json",
     "EU868": "EU-global_conf.json",
     "IN865": "IN-global_conf.json",
     "KR920": "KR-global_conf.json",
@@ -77,10 +75,10 @@ regionList = {
 
 
 def writeRegionConfSx1301(regionId):
-    regionconfFile = "/opt/iotloragateway/packet_forwarder/sx1301/lora_templates_sx1301/"+regionList[regionId]
+    regionconfFile = "/opt/packet_forwarder/lora_templates/"+regionList[regionId]
     with open(regionconfFile) as regionconfJFile:
         newGlobal = json.load(regionconfJFile)
-    globalPath = "/opt/iotloragateway/packet_forwarder/sx1301/global_conf.json"
+    globalPath = "/opt/packet_forwarder/global_conf.json"
 
     with open(globalPath, 'w') as jsonOut:
         json.dump(newGlobal, jsonOut)
@@ -93,13 +91,13 @@ while True:
 
     print("Starting")
 
-    subprocess.call(['/opt/iotloragateway/packet_forwarder/reset-v2.sh'])
+    subprocess.call(['/opt/packet_forwarder/reset-v2.sh'])
     sleep(2)
 
     print("SX1308")
     print("Frequency " + regionID)
     writeRegionConfSx1301(regionID)
-    os.system("/opt/iotloragateway/packet_forwarder/sx1301/lora_pkt_fwd")
+    os.system("/opt/packet_forwarder/lora_pkt_fwd")
     print("Software crashed, restarting")
     failTimes += 1
 

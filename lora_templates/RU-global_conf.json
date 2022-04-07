@@ -8,74 +8,68 @@
 		"radio_0": {
 			"enable": true,
 			"type": "SX1257",
-			"freq": 904300000,
-			"rssi_offset": -159.0,
+			"freq": 864500000,
+			"rssi_offset": -158.0,
 			"tx_enable": true,
-			"tx_freq_min": 902000000,
-			"tx_freq_max": 928000000
+			"tx_freq_min": 863000000,
+			"tx_freq_max": 870000000
 		},
 		"radio_1": {
 			"enable": true,
 			"type": "SX1257",
-			"freq": 905000000,
-			"rssi_offset": -159.0,
+			"freq": 869000000,
+			"rssi_offset": -158.0,
 			"tx_enable": false
 		},
 		"chan_multiSF_0": {
-			"desc": "Lora MAC, 125kHz, all SF, 903.9 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 864.1 MHz",
 			"enable": true,
 			"radio": 0,
 			"if": -400000
 		},
 		"chan_multiSF_1": {
-			"desc": "Lora MAC, 125kHz, all SF, 904.1 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 864.3 MHz",
 			"enable": true,
 			"radio": 0,
 			"if": -200000
 		},
 		"chan_multiSF_2": {
-			"desc": "Lora MAC, 125kHz, all SF, 904.3 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 864.5 MHz",
 			"enable": true,
 			"radio": 0,
 			"if": 0
 		},
 		"chan_multiSF_3": {
-			"desc": "Lora MAC, 125kHz, all SF, 904.5 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 864.7 MHz",
 			"enable": true,
 			"radio": 0,
 			"if": 200000
 		},
 		"chan_multiSF_4": {
-			"desc": "Lora MAC, 125kHz, all SF, 904.7 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 864.9 MHz",
 			"enable": true,
-			"radio": 1,
-			"if": -300000
+			"radio": 0,
+			"if": 400000
 		},
 		"chan_multiSF_5": {
-			"desc": "Lora MAC, 125kHz, all SF, 904.9 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 868.9 MHz",
 			"enable": true,
 			"radio": 1,
 			"if": -100000
 		},
 		"chan_multiSF_6": {
-			"desc": "Lora MAC, 125kHz, all SF, 905.1 MHz",
+			"desc": "Lora MAC, 125kHz, all SF, 869.1 MHz",
 			"enable": true,
 			"radio": 1,
 			"if": 100000
 		},
 		"chan_multiSF_7": {
-			"desc": "Lora MAC, 125kHz, all SF, 905.3 MHz",
-			"enable": true,
-			"radio": 1,
-			"if": 300000
+			"desc": "disabled",
+			"enable": false
 		},
 		"chan_Lora_std": {
-			"desc": "Lora MAC, 500kHz, SF8, 904.6 MHz",
-			"enable": true,
-			"radio": 0,
-			"if": 300000,
-			"bandwidth": 500000,
-			"spread_factor": 8
+			"desc": "disabled",
+			"enable": false
 		},
 		"chan_FSK": {
 			"desc": "disabled",
@@ -195,11 +189,11 @@
 		}
 	},
 	"gateway_conf": {
-    "server_address": "localhost",
+    "server_address": "helium-miner",
     "serv_port_up": 1680,
     "serv_port_down": 1680,
     "servers": [ {
-      "server_address": "localhost",
+      "server_address": "helium-miner",
       "serv_port_up": 1680,
       "serv_port_down": 1680,
       "serv_enabled": true
